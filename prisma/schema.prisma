@@ -1,0 +1,78 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Evento {
+  id          Int          @id @default(autoincrement())
+  nome        String
+  local       String
+  data        DateTime
+  descricao   String?
+  servicos    EventoServico[]
+  criadoEm    DateTime     @default(now())
+}
+
+model Servico {
+  id           Int               @id @default(autoincrement())
+  nome         String
+  descricao    String?
+  preco        Float
+  fornecedores FornecedorServico[]
+  eventos      EventoServico[]
+  pagamentos   Pagamento[]
+}
+
+model Fornecedor {
+  id        Int               @id @default(autoincrement())
+  nome      String
+  contato   String?
+  servicos  FornecedorServico[]
+}
+
+model Cliente {
+  id         Int         @id @default(autoincrement())
+  nome       String
+  email      String?
+  telefone   String?
+  pagamentos Pagamento[]
+}
+
+model Pagamento {
+  id         Int       @id @default(autoincrement())
+  valor      Float
+  data       DateTime  @default(now())
+  cliente    Cliente   @relation(fields: [clienteId], references: [id])
+  clienteId  Int
+  servico    Servico   @relation(fields: [servicoId], references: [id])
+  servicoId  Int
+}
+
+model EventoServico {
+  evento     Evento   @relation(fields: [eventoId], references: [id])
+  eventoId   Int
+  servico    Servico  @relation(fields: [servicoId], references: [id])
+  servicoId  Int
+
+  @@id([eventoId, servicoId])
+}
+
+model FornecedorServico {
+  fornecedor   Fornecedor @relation(fields: [fornecedorId], references: [id])
+  fornecedorId Int
+  servico      Servico    @relation(fields: [servicoId], references: [id])
+  servicoId    Int
+
+  @@id([fornecedorId, servicoId])
+}
